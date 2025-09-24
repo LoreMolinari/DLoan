@@ -72,6 +72,27 @@ npm start
 
 Access DApp at `http://localhost:3000`.
 
+## Demo Privacy Placeholder
+
+For the demo, we avoid real encryption/IPFS and submit placeholder privacy fields.
+
+- Toggle via env (default: enabled):
+
+```bash
+# in frontend/.env
+REACT_APP_DEMO_PRIVACY=true
+```
+
+`Borrower.js` hides metadata/CID inputs and submits a fixed `encryptedCid` and `metadataCommitment`.
+
+- To test real inputs (still without encryption), set:
+
+```bash
+REACT_APP_DEMO_PRIVACY=false
+```
+
+Then provide `Metadata (private)` and `Encrypted CID` in the Borrower form.
+
 ## Requirements
 
 - MetaMask browser extension
@@ -80,4 +101,4 @@ Access DApp at `http://localhost:3000`.
 
 ## Additional Resources
 
-For more detailed information about Hardhat integration with React, EthersJS, and MetaMask, refer to the [official Hardhat documentation](https://hardhat.org).
+For more detailed information see the PDF file and for the Hardhat integration with React, EthersJS, and MetaMask, refer to the [official Hardhat documentation](https://hardhat.org).

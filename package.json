@@ -1,29 +1,38 @@
 {
   "name": "DLoan",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "DLoan",
   "main": "hardhat.config.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Lorenzo Molinari",
   "license": "ISC",
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "hardhat": "^2.22.16",
-    "@ethersproject/abi": "^5.7.0",
-    "@ethersproject/providers": "^5.7.2",
-    "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-ignition": "^0.15.13",
+    "@nomicfoundation/hardhat-ignition-ethers": "^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.7",
-    "@nomiclabs/hardhat-ethers": "^2.2.1",
-    "@nomiclabs/hardhat-etherscan": "^3.1.4",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@nomicfoundation/ignition-core": "^0.15.13",
+    "@typechain/ethers-v6": "^0.5.0",
+    "@typechain/hardhat": "^9.0.0",
+    "@types/mocha": ">=9.1.0",
     "chai": "^4.3.7",
-    "ethers": "^5.7.2",
+    "dotenv": "^17.2.2",
+    "ethers": "^6.12.0",
+    "hardhat": "^2.22.16",
     "hardhat-gas-reporter": "^1.0.9",
-    "solidity-coverage": "^0.8.2"
+    "solidity-coverage": "^0.8.2",
+    "ts-node": ">=8.0.0",
+    "typechain": "^8.3.0",
+    "typescript": "^4.5.0"
   },
   "dependencies": {
-    "Hardhat": "npm:hardhat@^2.22.16"
+    "Hardhat": "npm:hardhat@^2.22.16",
+    "@chainlink/contracts": "^0.8.0"
   }
 }

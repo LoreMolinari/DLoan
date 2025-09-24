@@ -14,6 +14,7 @@ const Lender = () => {
   const [loanRequests, setLoanRequests] = useState([]);
   const [activeLoans, setActiveLoans] = useState([]);
   const [toast, setToast] = useState({ show: false, message: '', variant: 'success' });
+  
 
   // Initialize smart contract 
   useEffect(() => {
@@ -57,6 +58,7 @@ const Lender = () => {
     }
   };
 
+
   // Initialize smart contract
   const loadContract = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -91,7 +93,6 @@ const Lender = () => {
   const loadLoanRequests = async () => {
     if (!contract || !account) return;
     try {
-      const today = new Date();
       const [, , requestIds, requests] = await contract.getAllActiveLoans();
       const requestsData = requestIds.map((id, index) => ({
         requestId: id.toString(),
@@ -100,6 +101,8 @@ const Lender = () => {
         duration: requests[index].duration.toString(),
         stake: ethers.utils.formatEther(requests[index].stake),
         interestRate: requests[index].interestRate.toString(),
+        propertyUnits: (requests[index].propertyUnits ? requests[index].propertyUnits.toString() : '0'),
+        propertyCommitment: requests[index].propertyIdCommitment,
         isActive: requests[index].isActive
       }));
 
@@ -117,7 +120,7 @@ const Lender = () => {
   const loadActiveLoans = async () => {
     if (!contract || !account) return;
     try {
-      const [loanIds, loans] = await contract.getAllActiveLoans();
+      const [loanIds, loans, , ] = await contract.getAllActiveLoans();
       const activeLoansData = loans
         .map((loan, index) => ({
           loanId: loanIds[index].toString(),
@@ -127,6 +130,7 @@ const Lender = () => {
           stake: ethers.utils.formatEther(loan.stake),
           endTime: new Date(Number(loan.endTime) * 1000).toLocaleString(),
           interestRate: loan.interestRate.toString(),
+          propertyUnits: (loan.propertyUnits ? loan.propertyUnits.toString() : '0'),
           initialEthPrice: ethers.utils.formatUnits(loan.initialEthPrice, 18),
           state: loan.isRepaid ? LoanState.REPAID : (Date.now() > Number(loan.endTime) * 1000 ? LoanState.EXPIRED : LoanState.ACTIVE)
         }))
@@ -137,25 +141,34 @@ const Lender = () => {
       showToast("Error loading active loans", 'danger');
     }
   };
+
+  // Load parameters (penalty)
+  const [params, setParams] = useState({ bonusBp: '', penaltyBp: '' });
+  useEffect(() => {
+    const loadParams = async () => {
+      if (!contract) return;
+      try {
+        const bonusBp = await contract.liquidationBonusBp();
+        const penaltyBp = await contract.overdueRepayPenaltyBp();
+        setParams({ bonusBp: bonusBp.toString(), penaltyBp: penaltyBp.toString() });
+      } catch (e) {
+        // ignore if without params
+      }
+    };
+    loadParams();
+  }, [contract]);
   
   // Fund selected loan
   const fundLoan = async (requestId, amount) => {
     if (!contract) return;
     try {
       const amountInWei = ethers.utils.parseEther(amount);
-      const currentEthPrice = await getEthPrice();
-      
-      if (!currentEthPrice) {
-        showToast("Error fetching ETH price", 'danger');
-        return;
-      }
   
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const nonce = await provider.getTransactionCount(account);
       
       const tx = await contract.fundLoanRequest(
         requestId,
-        ethers.utils.parseUnits(currentEthPrice.toString(), 18),
         { value: amountInWei, nonce, gasLimit: ethers.utils.hexlify(1000000) }
       );
       
@@ -173,17 +186,7 @@ const Lender = () => {
   };
 
 
-  // API to retrieve USD-ETH price
-  const getEthPrice = async () => {
-    try {
-      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
-      const data = await response.json();
-      return data.ethereum.usd;
-    } catch (error) {
-      console.error("Error fetching ETH price:", error);
-      return null;
-    }
-  };  
+  
   
 
   // Liquidate expired loan
@@ -236,6 +239,10 @@ const Lender = () => {
           <Button variant="outline-primary" onClick={loadLoanRequests}>Refresh Requests</Button>
         </Card.Header>
         <Card.Body>
+        
+        {params.bonusBp && (
+          <div className="mb-3 text-muted">Current liquidator bonus: {Number(params.bonusBp)/100}%</div>
+        )}
         <Table responsive>
             <thead>
               <tr>
@@ -245,7 +252,8 @@ const Lender = () => {
                 <th>Stake</th>
                 <th>Duration</th>
                 <th>Interest Rate</th>
-                <th>Initial ETH Price</th>
+                <th>Units</th>
+                <th>Property Commitment</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -259,7 +267,8 @@ const Lender = () => {
                   <td>{request.stake} ETH</td>
                   <td>{request.duration} days</td>
                   <td>{request.interestRate}%</td>
-                  <td>{request.isActive === 'ACTIVE' ? `$${request.initialEthPrice}` : 'N/A'}</td>
+                  <td>{request.propertyUnits}</td>
+                  <td><code style={{fontSize:'0.8em'}}>{request.propertyCommitment}</code></td>
                   <td>
                     <Badge bg='success'>
                       ACTIVE
@@ -294,7 +303,9 @@ const Lender = () => {
                 <th>Amount</th>
                 <th>Stake</th>
                 <th>End Time</th>
+                <th>Units</th>
                 <th>Interest Rate</th>
+                <th>Initial ETH Price</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -307,7 +318,9 @@ const Lender = () => {
                   <td>{loan.amount} ETH</td>
                   <td>{loan.stake} ETH</td>
                   <td>{loan.endTime}</td>
+                  <td>{loan.propertyUnits}</td>
                   <td>{loan.interestRate}%</td>
+                  <td>${loan.initialEthPrice}</td>
                   <td>
                     <Badge bg={loan.state === LoanState.ACTIVE ? 'warning' : 
                               (loan.state === LoanState.REPAID ? 'success' : 'danger')}>

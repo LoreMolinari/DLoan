@@ -44,11 +44,11 @@ export class Dapp extends React.Component {
       <div className="dapp-wrapper">
         <Navbar bg="dark" variant="dark" expand="lg">
           <Container>
-            <Navbar.Brand href="#home">DLoan Platform</Navbar.Brand>
+            <Navbar.Brand href="#" onClick={() => this._goHome()}>DLoan Platform</Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="me-auto">
-                <Nav.Link href="<Dapp />">Home</Nav.Link>
+                <Nav.Link href="#" onClick={() => this._goHome()}>Home</Nav.Link>
               </Nav>
               <Navbar.Text className="ml-3">
                 Signed in as: <a href="#login">{selectedAddress}</a>
@@ -140,6 +140,16 @@ export class Dapp extends React.Component {
   _checkNetwork() {
     if (window.ethereum.networkVersion !== HARDHAT_NETWORK_ID) {
       this._switchChain();
+    }
+  }
+
+  _goHome() {
+    // Reset role selection
+    this.setState({ userRole: undefined });
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (_) {
+      window.scrollTo(0, 0);
     }
   }
 }
